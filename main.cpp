@@ -126,7 +126,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	width = rect.right - rect.left;
 	height = rect.bottom - rect.top;
 
-	GLuint program = CreateGPUProgram("res/shader/SimpleTextureSSBO.vs", "res/shader/SimpleTexture.fs");
+	GLuint program = CreateGPUProgram("res/shader/PointSpriteSSBO.vs", "res/shader/SimpleTexture.fs");
 	GLint MLocation, VLocation, PLocation,textureLocation;
 
 	MLocation = glGetUniformLocation(program, "M");
@@ -135,13 +135,12 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	textureLocation = glGetUniformLocation(program, "U_MainTexture");
 
 	// load obj model :  vertexes¡¢vertex count¡¢indexes¡¢index count
-	unsigned int *indexes = nullptr;
-	int vertexCount = 0, indexCount = 0;
-	VertexData*vertexes = LoadObjModel("res/model/niutou.obj", &indexes, vertexCount, indexCount);
-	if (vertexes==nullptr)
-	{
-		printf("load obj model fail\n");
-	}
+	unsigned int indexes[] = {0,1,2,0,2,3};
+	VertexData vertexes[1];
+	vertexes[0].position[0] = 0.0f;
+	vertexes[0].position[1] = 0.0f;
+	vertexes[0].position[2] = 0.0f;
+	int vertexCount = 1, indexCount = 6;
 	//obj model -> vbo & ibo
 	GLuint ssbo = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(VertexData) * vertexCount, GL_STATIC_DRAW, vertexes);
 	GLuint ibo = CreateBufferObject(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indexCount, GL_STATIC_DRAW, indexes);
@@ -161,7 +160,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		0,0,1,0,
 		0,0,0,1
 	};
-	glm::mat4 model = glm::translate(0.0f,-0.5f,-1.5f)*glm::rotate(-90.0f,0.0f,1.0f,0.0f)*glm::scale(0.01f,0.01f,0.01f);
+	glm::mat4 model = glm::translate(0.0f,0.0f,-1.5f);
 	glm::mat4 projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	glm::mat4 normalMatrix = glm::inverseTranspose(model);
 	MSG msg;

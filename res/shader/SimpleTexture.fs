@@ -1,6 +1,6 @@
 
 uniform sampler2D U_MainTexture;
-in vec2 V_Texcoord;
+varying vec2 V_Texcoord;
 
 void main()
 {

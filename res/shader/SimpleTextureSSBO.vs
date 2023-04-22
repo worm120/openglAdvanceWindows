@@ -14,7 +14,7 @@ uniform mat4 M;
 uniform mat4 V;
 uniform mat4 P;
 
-out vec2 V_Texcoord;
+in vec2 V_Texcoord;
 
 void main()
 {
