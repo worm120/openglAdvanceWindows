@@ -126,7 +126,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	width = rect.right - rect.left;
 	height = rect.bottom - rect.top;
 
-	GLuint program = CreateGPUProgram("res/shader/PointSpriteSSBO.vs", "res/shader/SimpleTexture.fs");
+	GLuint program = CreateGPUProgram("res/shader/PointSpriteSSBO.vs", "res/shader/PointSpriteSSBO.fs");
 	GLint MLocation, VLocation, PLocation,textureLocation;
 
 	MLocation = glGetUniformLocation(program, "M");
@@ -153,14 +153,15 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
 	glViewport(0, 0, width,height);
-
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	float identity[] = {
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,
 		0,0,0,1
 	};
-	glm::mat4 model = glm::translate(0.0f,0.0f,-1.5f);
+	glm::mat4 model = glm::translate(0.0f,0.0f,-1.0f);
 	glm::mat4 projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	glm::mat4 normalMatrix = glm::inverseTranspose(model);
 	MSG msg;
