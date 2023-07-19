@@ -12,6 +12,21 @@
 #pragma comment(lib,"glew32.lib")
 #pragma comment(lib,"glu32.lib")
 
+struct FloatBundle
+{
+	float v[4];
+};
+
+float frandom()//0~1
+{
+	return rand() / (float)RAND_MAX;
+}
+
+float sfrandom()//-1~1
+{
+	return frandom()*2.0f - 1.0f;
+}
+
 HGLRC CreateNBRC(HDC dc)
 {
 	HGLRC rc;
@@ -135,56 +150,49 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	textureLocation = glGetUniformLocation(program, "U_MainTexture");
 
 	// load obj model :  vertexes¡¢vertex count¡¢indexes¡¢index count
-	unsigned int indexes[] = {0,1,2,0,2,3};
-	VertexData vertexes[1];
-	vertexes[0].position[0] = 0.0f;
-	vertexes[0].position[1] = 0.0f;
-	vertexes[0].position[2] = 0.0f;
-	int vertexCount = 1, indexCount = 6;
+	int nParticleCount = 1<<20;
+	FloatBundle *vertexes = new FloatBundle[nParticleCount];
+	int indexCount = 6 * nParticleCount;
+	unsigned int *indexes = new unsigned int[indexCount];
+	unsigned int *temp = indexes;
+	for (int i = 0; i < nParticleCount; ++i)
+	{
+		//position
+		vertexes[i].v[0] = sfrandom();
+		vertexes[i].v[1] = sfrandom();
+		vertexes[i].v[2] = sfrandom();
+		vertexes[i].v[3] = 1.0f;
+		//indexes
+		unsigned int index = unsigned int(i<<2);
+		*(temp++) = index;
+		*(temp++) = index+1;
+		*(temp++) = index+2;
+		*(temp++) = index;
+		*(temp++) = index+2;
+		*(temp++) = index+3;
+	}
 	//obj model -> vbo & ibo
-	GLuint ssbo = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(VertexData) * vertexCount, GL_STATIC_DRAW, vertexes);
+	GLuint ssbo = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(FloatBundle) * nParticleCount, GL_STATIC_DRAW, vertexes);
 	GLuint ibo = CreateBufferObject(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indexCount, GL_STATIC_DRAW, indexes);
 
 
-	GLuint mainTexture=CreateTextureFromFile("res/image/niutou.bmp");
-
 	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
-	glEnable(GL_DEPTH_TEST);
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
 	glViewport(0, 0, width,height);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glDisable(GL_CULL_FACE);
 	float identity[] = {
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,
 		0,0,0,1
 	};
-	glm::mat4 model = glm::translate(0.0f,0.0f,-1.0f);
+	glm::mat4 model = glm::translate(0.0f,0.0f,-5.0f)*glm::rotate(45.0f,1.0f,1.0f,1.0f);
 	glm::mat4 projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	glm::mat4 normalMatrix = glm::inverseTranspose(model);
 	MSG msg;
-	auto waht = [&]()->void 
-	{
-		glUseProgram(program);
-		glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
-		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glBindTexture(GL_TEXTURE_2D, mainTexture);
-		glUniform1i(textureLocation, 0);
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
-
-		glUseProgram(0);
-	};
-
 	while (true)
 	{
 		if (PeekMessage(&msg,NULL,NULL,NULL,PM_REMOVE))
@@ -197,7 +205,20 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			DispatchMessage(&msg);
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		waht();
+
+		glUseProgram(program);
+		glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
+		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+
+		glUseProgram(0);
 		glFlush();
 		SwapBuffers(dc);
 	}
