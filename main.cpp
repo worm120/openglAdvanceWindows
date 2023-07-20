@@ -27,6 +27,37 @@ float sfrandom()//-1~1
 	return frandom()*2.0f - 1.0f;
 }
 
+GLuint CreateTexture3D(int w,int h,int d)
+{
+	char*data = new char[w*h*d*4];
+	char*temp = data;
+	for (int i=0;i<w;++i)
+	{
+		for (int ii=0;ii<h;++ii)
+		{
+			for (int iii=0;iii<d;++iii)
+			{
+				*temp++ = rand() & 0xff;
+				*temp++ = rand() & 0xff;
+				*temp++ = rand() & 0xff;
+				*temp++ = rand() & 0xff;
+			}
+		}
+	}
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_3D, texture);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8_SNORM, w, h,d, 0, GL_RGBA, GL_BYTE, data);
+	glBindTexture(GL_TEXTURE_3D, 0);
+	delete data;
+	return texture;
+}
+
 HGLRC CreateNBRC(HDC dc)
 {
 	HGLRC rc;
@@ -152,6 +183,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	// load obj model :  vertexes¡¢vertex count¡¢indexes¡¢index count
 	int nParticleCount = 1<<20;
 	FloatBundle *vertexes = new FloatBundle[nParticleCount];
+	FloatBundle *velocity = new FloatBundle[nParticleCount];
 	int indexCount = 6 * nParticleCount;
 	unsigned int *indexes = new unsigned int[indexCount];
 	unsigned int *temp = indexes;
@@ -162,6 +194,11 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		vertexes[i].v[1] = sfrandom();
 		vertexes[i].v[2] = sfrandom();
 		vertexes[i].v[3] = 1.0f;
+		//v
+		velocity[i].v[0] = 0.0f;
+		velocity[i].v[1] = 0.0f;
+		velocity[i].v[2] = 0.0f;
+		velocity[i].v[3] = 1.0f;
 		//indexes
 		unsigned int index = unsigned int(i<<2);
 		*(temp++) = index;
@@ -173,8 +210,12 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	//obj model -> vbo & ibo
 	GLuint ssbo = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(FloatBundle) * nParticleCount, GL_STATIC_DRAW, vertexes);
+	GLuint ssbo_v = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(FloatBundle) * nParticleCount, GL_STATIC_DRAW, velocity);
 	GLuint ibo = CreateBufferObject(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indexCount, GL_STATIC_DRAW, indexes);
 
+	GLuint updateCS = CreateComputeProgram("res/shader/updateparticle.shader");
+	GLint noiseTextureLocation = glGetUniformLocation(updateCS,"U_MainTexture");
+	GLuint noiseTexture = CreateTexture3D(16, 16, 16);
 
 	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
@@ -204,6 +245,16 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		glUseProgram(updateCS);
+		glBindTexture(GL_TEXTURE_3D, noiseTexture);
+		glUniform1i(noiseTextureLocation,0);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_v);
+		glDispatchCompute(nParticleCount / 128, 1, 1);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, 0);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(program);
