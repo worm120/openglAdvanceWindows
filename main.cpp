@@ -141,21 +141,86 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	width = rect.right - rect.left;
 	height = rect.bottom - rect.top;
 
-	GLuint program = CreateGPUProgram("res/shader/simplegs.vs", "res/shader/simplegs.fs","res/shader/simplegs.shader");
-	GLint MLocation, VLocation, PLocation,posLocation;
+	glm::mat4 model = glm::translate(0.0f, 0.0f, -2.0f);
+	glm::mat4 projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+	glm::mat4 normalMatrix = glm::inverseTranspose(model);
+
+	FloatBundle vertexes[3];
+	vertexes[0].v[0] = 0.0f;
+	vertexes[0].v[1] = 0.0f;
+	vertexes[0].v[2] = 0.0f;
+	vertexes[0].v[3] = 1.0f;
+
+	vertexes[1].v[0] = 0.5f;
+	vertexes[1].v[1] = 0.0f;
+	vertexes[1].v[2] = 0.0f;
+	vertexes[1].v[3] = 1.0f;
+
+	vertexes[2].v[0] = 0.0f;
+	vertexes[2].v[1] = 0.5f;
+	vertexes[2].v[2] = 0.0f;
+	vertexes[2].v[3] = 1.0f;
+
+	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle)*3, GL_STATIC_DRAW, &vertexes);
+	GLuint tfo;
+	glGenTransformFeedbacks(1, &tfo);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tfo);
+	GLuint tfoBuffer = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 3, GL_STATIC_DRAW, nullptr);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+
+	//local coordinate -> world coordinate : execute once
+	GLuint vsShader = CompileShader(GL_VERTEX_SHADER, "res/shader/tfo_translateM.vs");
+	GLuint fsShader = CompileShader(GL_FRAGMENT_SHADER, "res/shader/tfo_translateM.fs");
+	GLuint translateMProgram = glCreateProgram();
+	glAttachShader(translateMProgram, vsShader);
+	glAttachShader(translateMProgram, fsShader);
+
+	const char*attribs[] = {"gl_Position"};
+	glTransformFeedbackVaryings(translateMProgram, 1, attribs, GL_INTERLEAVED_ATTRIBS);
+
+	glLinkProgram(translateMProgram);
+	glDetachShader(translateMProgram, vsShader);
+	glDetachShader(translateMProgram, fsShader);
+	glDeleteShader(vsShader);
+	glDeleteShader(fsShader);
+	GLint translateMPosLocation, translateMMLocation;
+	translateMPosLocation = glGetAttribLocation(translateMProgram, "pos");
+	translateMMLocation = glGetUniformLocation(translateMProgram, "M");
+
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tfo);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, tfoBuffer);
+	glUseProgram(translateMProgram);
+	glUniformMatrix4fv(translateMMLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+	glBeginTransformFeedback(GL_TRIANGLES);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glEnableVertexAttribArray(translateMPosLocation);
+	glVertexAttribPointer(translateMPosLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEndTransformFeedback();
+	glUseProgram(0);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, tfoBuffer);
+	FloatBundle*vertices = (FloatBundle*)glMapBuffer(GL_ARRAY_BUFFER,GL_READ_WRITE);
+	for (int i=0;i<3;i++)
+	{
+		printf("%f,%f,%f,%f\n",vertices[i].v[0], vertices[i].v[1], vertices[i].v[2], vertices[i].v[3]);
+	}
+
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//above is success
+
+	//world world -> screen coordinate : execute per frame
+	GLuint program = CreateGPUProgram("res/shader/tfo_translateScreen.vs", "res/shader/tfo_translateScreen.fs");
+	GLint VLocation, PLocation,posLocation;
 
 	posLocation = glGetAttribLocation(program,"pos");
-	MLocation = glGetUniformLocation(program, "M");
 	VLocation = glGetUniformLocation(program, "V");
 	PLocation = glGetUniformLocation(program, "P");
 
-	FloatBundle vertexes;
-	vertexes.v[0] = 0.0f;
-	vertexes.v[1] = 0.0f;
-	vertexes.v[2] = 0.0f;
-	vertexes.v[3] = 0.0f;
 	
-	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle), GL_STATIC_DRAW, &vertexes);
 	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
@@ -169,9 +234,6 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		0,0,1,0,
 		0,0,0,1
 	};
-	glm::mat4 model = glm::translate(0.0f,0.0f,-2.0f);
-	glm::mat4 projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
-	glm::mat4 normalMatrix = glm::inverseTranspose(model);
 	MSG msg;
 	while (true)
 	{
@@ -187,14 +249,13 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(program);
-		glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
 		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, tfoBuffer);
 		glEnableVertexAttribArray(posLocation);
 		glVertexAttribPointer(posLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
-		glDrawArrays(GL_POINTS, 0,1);
+		glDrawArrays(GL_TRIANGLES, 0,3);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glUseProgram(0);
