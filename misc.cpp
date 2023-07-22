@@ -3,6 +3,38 @@
 #include <string.h>
 #include <windows.h>
 
+
+GLuint CreateTexture3D(int w, int h, int d)
+{
+	char*data = new char[w*h*d * 4];
+	char*temp = data;
+	for (int i = 0; i < w; ++i)
+	{
+		for (int ii = 0; ii < h; ++ii)
+		{
+			for (int iii = 0; iii < d; ++iii)
+			{
+				*temp++ = rand() & 0xff;
+				*temp++ = rand() & 0xff;
+				*temp++ = rand() & 0xff;
+				*temp++ = rand() & 0xff;
+			}
+		}
+	}
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_3D, texture);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8_SNORM, w, h, d, 0, GL_RGBA, GL_BYTE, data);
+	glBindTexture(GL_TEXTURE_3D, 0);
+	delete data;
+	return texture;
+}
+
 GLuint CreateBufferObject(GLenum bufferType, GLsizeiptr size, GLenum usage, void*data /* = nullptr */)
 {
 	GLuint object;
@@ -138,18 +170,30 @@ GLuint CompileShader(GLenum shaderType, const char*shaderPath)
 }
 
 
-GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath)
+GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const char*gsPath)
 {
 	GLuint vsShader = CompileShader(GL_VERTEX_SHADER, vsShaderPath);
 	GLuint fsShader = CompileShader(GL_FRAGMENT_SHADER,fsShaderPath);
 	GLuint program = glCreateProgram();
 	glAttachShader(program, vsShader);
 	glAttachShader(program, fsShader);
+	GLuint gsShader = 0;
+	if (gsPath!=nullptr)
+	{
+		gsShader = CompileShader(GL_GEOMETRY_SHADER, gsPath);
+		glAttachShader(program, gsShader);
+	}
 	glLinkProgram(program);
 	glDetachShader(program, vsShader);
 	glDetachShader(program, fsShader);
 	glDeleteShader(vsShader);
 	glDeleteShader(fsShader);
+	if (gsPath!=nullptr)
+	{
+
+		glDetachShader(program, gsShader);
+		glDeleteShader(gsShader);
+	}
 	GLint linkResult = GL_TRUE;
 	glGetProgramiv(program,GL_LINK_STATUS,&linkResult);
 	if (linkResult==GL_FALSE)

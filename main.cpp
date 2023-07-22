@@ -27,37 +27,6 @@ float sfrandom()//-1~1
 	return frandom()*2.0f - 1.0f;
 }
 
-GLuint CreateTexture3D(int w,int h,int d)
-{
-	char*data = new char[w*h*d*4];
-	char*temp = data;
-	for (int i=0;i<w;++i)
-	{
-		for (int ii=0;ii<h;++ii)
-		{
-			for (int iii=0;iii<d;++iii)
-			{
-				*temp++ = rand() & 0xff;
-				*temp++ = rand() & 0xff;
-				*temp++ = rand() & 0xff;
-				*temp++ = rand() & 0xff;
-			}
-		}
-	}
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_3D, texture);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8_SNORM, w, h,d, 0, GL_RGBA, GL_BYTE, data);
-	glBindTexture(GL_TEXTURE_3D, 0);
-	delete data;
-	return texture;
-}
-
 HGLRC CreateNBRC(HDC dc)
 {
 	HGLRC rc;
@@ -172,51 +141,21 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	width = rect.right - rect.left;
 	height = rect.bottom - rect.top;
 
-	GLuint program = CreateGPUProgram("res/shader/PointSpriteSSBO.vs", "res/shader/PointSpriteSSBO.fs");
-	GLint MLocation, VLocation, PLocation,textureLocation;
+	GLuint program = CreateGPUProgram("res/shader/simplegs.vs", "res/shader/simplegs.fs","res/shader/simplegs.shader");
+	GLint MLocation, VLocation, PLocation,posLocation;
 
+	posLocation = glGetAttribLocation(program,"pos");
 	MLocation = glGetUniformLocation(program, "M");
 	VLocation = glGetUniformLocation(program, "V");
 	PLocation = glGetUniformLocation(program, "P");
-	textureLocation = glGetUniformLocation(program, "U_MainTexture");
 
-	// load obj model :  vertexes¡¢vertex count¡¢indexes¡¢index count
-	int nParticleCount = 1<<20;
-	FloatBundle *vertexes = new FloatBundle[nParticleCount];
-	FloatBundle *velocity = new FloatBundle[nParticleCount];
-	int indexCount = 6 * nParticleCount;
-	unsigned int *indexes = new unsigned int[indexCount];
-	unsigned int *temp = indexes;
-	for (int i = 0; i < nParticleCount; ++i)
-	{
-		//position
-		vertexes[i].v[0] = sfrandom();
-		vertexes[i].v[1] = sfrandom();
-		vertexes[i].v[2] = sfrandom();
-		vertexes[i].v[3] = 1.0f;
-		//v
-		velocity[i].v[0] = 0.0f;
-		velocity[i].v[1] = 0.0f;
-		velocity[i].v[2] = 0.0f;
-		velocity[i].v[3] = 1.0f;
-		//indexes
-		unsigned int index = unsigned int(i<<2);
-		*(temp++) = index;
-		*(temp++) = index+1;
-		*(temp++) = index+2;
-		*(temp++) = index;
-		*(temp++) = index+2;
-		*(temp++) = index+3;
-	}
-	//obj model -> vbo & ibo
-	GLuint ssbo = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(FloatBundle) * nParticleCount, GL_STATIC_DRAW, vertexes);
-	GLuint ssbo_v = CreateBufferObject(GL_SHADER_STORAGE_BUFFER, sizeof(FloatBundle) * nParticleCount, GL_STATIC_DRAW, velocity);
-	GLuint ibo = CreateBufferObject(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indexCount, GL_STATIC_DRAW, indexes);
-
-	GLuint updateCS = CreateComputeProgram("res/shader/updateparticle.shader");
-	GLint noiseTextureLocation = glGetUniformLocation(updateCS,"U_MainTexture");
-	GLuint noiseTexture = CreateTexture3D(16, 16, 16);
-
+	FloatBundle vertexes;
+	vertexes.v[0] = 0.0f;
+	vertexes.v[1] = 0.0f;
+	vertexes.v[2] = 0.0f;
+	vertexes.v[3] = 0.0f;
+	
+	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle), GL_STATIC_DRAW, &vertexes);
 	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
@@ -230,7 +169,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		0,0,1,0,
 		0,0,0,1
 	};
-	glm::mat4 model = glm::translate(0.0f,0.0f,-5.0f)*glm::rotate(45.0f,1.0f,1.0f,1.0f);
+	glm::mat4 model = glm::translate(0.0f,0.0f,-2.0f);
 	glm::mat4 projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	glm::mat4 normalMatrix = glm::inverseTranspose(model);
 	MSG msg;
@@ -245,16 +184,6 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		glUseProgram(updateCS);
-		glBindTexture(GL_TEXTURE_3D, noiseTexture);
-		glUniform1i(noiseTextureLocation,0);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_v);
-		glDispatchCompute(nParticleCount / 128, 1, 1);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, 0);
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(program);
@@ -262,12 +191,11 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
 		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glEnableVertexAttribArray(posLocation);
+		glVertexAttribPointer(posLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+		glDrawArrays(GL_POINTS, 0,1);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glUseProgram(0);
 		glFlush();

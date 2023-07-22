@@ -8,10 +8,11 @@ GLuint CreateFramebufferObject(GLuint&colorBuffer,GLuint&depthBuffer, int width,
 
 char *LoadFileContent(const char*path);
 GLuint CompileShader(GLenum shaderType,const char*shaderPath);
-GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath);
+GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const char*gsPath=nullptr);
 GLuint CreateComputeProgram(const char*computeShaderPath);
 unsigned char*DecodeBMPData(unsigned char*imgData, int&width, int&height);
 GLuint CreateTextureFromFile(const char*imagePath);
+GLuint CreateTexture3D(int w, int h, int d);
 void SaveImage(const char*imagePath,unsigned char*imgData,int width,int height);
 
 void CheckGLError(const char*file,int line);
