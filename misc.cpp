@@ -45,6 +45,16 @@ GLuint CreateBufferObject(GLenum bufferType, GLsizeiptr size, GLenum usage, void
 	return object;
 }
 
+GLuint CreateTransformFeedbackObject(GLuint tfoBuffer)
+{
+	GLuint tfo;
+	glGenTransformFeedbacks(1, &tfo);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tfo);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, tfoBuffer);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+	return tfo;
+}
+
 GLuint CreateVAOWithVBOSettings(std::function<void()>settings)
 {
 	GLuint vao;
@@ -202,6 +212,41 @@ GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const c
 		GLsizei logLen = 0;
 		glGetProgramInfoLog(program, 1024, &logLen, szLog);
 		printf("link program fail error log : %s \n vs : %s\n fs : %s\n", szLog, vsShaderPath,fsShaderPath);
+		glDeleteProgram(program);
+		program = 0;
+	}
+	return program;
+}
+
+GLuint CreateTFOProgram(const char*vsShaderPath, const char* const*attris, int nCount, GLenum memoryFormat, const char*gsPath /* = nullptr */)
+{
+	GLuint vsShader = CompileShader(GL_VERTEX_SHADER, vsShaderPath);
+	GLuint program = glCreateProgram();
+	glAttachShader(program, vsShader);
+	GLuint gsShader = 0;
+	if (gsPath != nullptr)
+	{
+		gsShader = CompileShader(GL_GEOMETRY_SHADER, gsPath);
+		glAttachShader(program, gsShader);
+	}
+	glTransformFeedbackVaryings(program, nCount, attris, memoryFormat);
+	glLinkProgram(program);
+	glDetachShader(program, vsShader);
+	glDeleteShader(vsShader);
+	if (gsPath != nullptr)
+	{
+
+		glDetachShader(program, gsShader);
+		glDeleteShader(gsShader);
+	}
+	GLint linkResult = GL_TRUE;
+	glGetProgramiv(program, GL_LINK_STATUS, &linkResult);
+	if (linkResult == GL_FALSE)
+	{
+		char szLog[1024] = { 0 };
+		GLsizei logLen = 0;
+		glGetProgramInfoLog(program, 1024, &logLen, szLog);
+		printf("link program fail error log : %s \n vs : %s\n", szLog, vsShaderPath);
 		glDeleteProgram(program);
 		program = 0;
 	}
