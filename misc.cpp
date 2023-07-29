@@ -35,6 +35,33 @@ GLuint CreateTexture3D(int w, int h, int d)
 	return texture;
 }
 
+GLuint CreateTextureAlpha(int w, int h)
+{
+	unsigned char*imageData = new unsigned char[w*h];
+	float distanceMax = (float)w;
+	for (int y=0;y<h;++y)
+	{
+		for (int x=0;x<w;++x)
+		{
+			float distance = sqrtf((x-w/2.0f)*(x-w/2.0f)+ (y - h / 2.0f)*(y - h / 2.0f));
+			float alpha = powf((distanceMax-distance)/distanceMax,8.0f);
+			alpha = alpha > 1.0f ? 1.0f : alpha;
+			imageData[x + y*w] = alpha > 0.0f ? (unsigned char)(alpha*255.0f) : 0;
+		}
+	}
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_ALPHA,w,h,0,GL_ALPHA,GL_UNSIGNED_BYTE,imageData);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	delete imageData;
+	return texture;
+}
+
 GLuint CreateBufferObject(GLenum bufferType, GLsizeiptr size, GLenum usage, void*data /* = nullptr */)
 {
 	GLuint object;

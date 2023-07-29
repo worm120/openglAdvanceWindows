@@ -192,12 +192,14 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	//above is success
 	//world world -> screen coordinate : execute per frame
 	GLuint program = CreateGPUProgram("res/shader/tfo_translateScreen.vs", "res/shader/tfo_translateScreen.fs");
-	GLint VLocation, PLocation,posLocation;
+	GLint VLocation, PLocation,posLocation,textureLocation;
 
 	GL_CALL(posLocation = glGetAttribLocation(program,"pos"));
 	VLocation = glGetUniformLocation(program, "V");
 	PLocation = glGetUniformLocation(program, "P");
+	textureLocation = glGetUniformLocation(program, "U_MainTexture");
 
+	GLuint particleAlphaTexture = CreateTextureAlpha(256, 256);
 	
 	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
@@ -205,7 +207,6 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	glViewport(0, 0, width,height);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glDisable(GL_CULL_FACE);
 	float identity[] = {
 		1,0,0,0,
 		0,1,0,0,
@@ -232,6 +233,9 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
 		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, particleAlphaTexture);
+		glUniform1i(textureLocation,0);
 		glBindBuffer(GL_ARRAY_BUFFER, tfoNewParticleBuffer);
 		glEnableVertexAttribArray(posLocation);
 		glVertexAttribPointer(posLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);

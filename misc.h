@@ -15,6 +15,7 @@ GLuint CreateComputeProgram(const char*computeShaderPath);
 unsigned char*DecodeBMPData(unsigned char*imgData, int&width, int&height);
 GLuint CreateTextureFromFile(const char*imagePath);
 GLuint CreateTexture3D(int w, int h, int d);
+GLuint CreateTextureAlpha(int w,int h);
 void SaveImage(const char*imagePath,unsigned char*imgData,int width,int height);
 
 void CheckGLError(const char*file,int line);
