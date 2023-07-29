@@ -112,7 +112,7 @@ void EmitParticle()
 
 void UpdateParticle()
 {
-	printf("current particle buffer tfo %d %d\n",currentParticleTFO, currentParticleTFOForDraw);
+	//printf("current particle buffer tfo %d %d\n",currentParticleTFO, currentParticleTFOForDraw);
 
 	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, updateParticleTFO[currentParticleTFO]);
@@ -121,17 +121,22 @@ void UpdateParticle()
 	//new emitted particle update
 	if (bEmitNewParticle)
 	{
+		bEmitNewParticle = false;
 		//update particle : write new particle to some buffer via transform feedback technique
+		glBindBuffer(GL_ARRAY_BUFFER, tfoNewParticleBuffer);
+		glEnableVertexAttribArray(updateParticleProgramPosLocation);
+		glVertexAttribPointer(updateParticleProgramPosLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glDrawTransformFeedback(GL_POINTS, tfoNewParticle);
 	}
 	//update old particle : write old particle to some buffer via transform feedback technique
-
 	glEndTransformFeedback();
 	glUseProgram(0);
 	glDisable(GL_RASTERIZER_DISCARD);
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
 	currentParticleTFOForDraw = currentParticleTFO;
 
-	currentParticleTFO = (currentParticleTFO + 1) % 2;
+	//currentParticleTFO = (currentParticleTFO + 1) % 2;
 }
 
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
@@ -232,7 +237,17 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	textureLocation = glGetUniformLocation(program, "U_MainTexture");
 
 	GLuint particleAlphaTexture = CreateTextureAlpha(256, 256);
-	
+
+	//update particle shader
+	updateParticleProgram = CreateTFOProgram("res/shader/tfo_update_particle.vs", attribs, 1, GL_INTERLEAVED_ATTRIBS);
+	updateParticleProgramPosLocation = glGetAttribLocation(updateParticleProgram,"pos");
+
+	for (int i=0;i<2;++i)
+	{
+		updateParticleTFOBuffer[i] = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 10240, GL_STATIC_DRAW, nullptr);
+		updateParticleTFO[i] = CreateTransformFeedbackObject(updateParticleTFOBuffer[i]);
+	}
+
 	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
@@ -263,7 +278,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		//update particle
 		UpdateParticle();
 		//draw particle
-		/*glUseProgram(program);
+		glUseProgram(program);
 		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
 		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -276,7 +291,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		glDrawArrays(GL_POINTS, 0,1);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		glUseProgram(0);*/
+		glUseProgram(0);
 		glFlush();
 		SwapBuffers(dc);
 	}
