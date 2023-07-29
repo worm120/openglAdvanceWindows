@@ -275,7 +275,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	EmitParticle();
 	//above is success
 	//world world -> screen coordinate : execute per frame
-	GLuint program = CreateGPUProgram("res/shader/tfo_translateScreen.vs", "res/shader/tfo_translateScreen.fs");
+	GLuint program = CreateGPUProgram("res/shader/tfo_translateScreen.vs", "res/shader/tfo_translateScreen.fs","res/shader/tfo_translateScreen.gs");
 	GLint VLocation, PLocation,posLocation,messLocation,textureLocation;
 
 	GL_CALL(posLocation = glGetAttribLocation(program, "pos"));
@@ -309,8 +309,6 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		0,0,1,0,
 		0,0,0,1
 	};
-	glEnable(GL_POINT_SPRITE);
-	glEnable(GL_PROGRAM_POINT_SIZE);
 	glGenQueries(1, &queryObject);
 	MSG msg;
 	while (true)
