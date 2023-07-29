@@ -89,6 +89,9 @@ GLuint updateParticleTFOBuffer[2];
 int currentParticleTFO = 0;
 int currentParticleTFOForDraw = 0;
 
+GLuint queryObject;
+GLint particleCount=-1;
+
 glm::mat4 model;
 glm::mat4 projection;
 glm::mat4 normalMatrix;
@@ -108,17 +111,28 @@ void EmitParticle()
 	glEndTransformFeedback();
 	glUseProgram(0);
 	glDisable(GL_RASTERIZER_DISCARD);
+	bEmitNewParticle = true;
 }
 
 void UpdateParticle()
 {
 	//printf("current particle buffer tfo %d %d\n",currentParticleTFO, currentParticleTFOForDraw);
-
+	int currentOldParticleBufferIndex = currentParticleTFOForDraw;
+	if (particleCount==-1)
+	{
+		particleCount++;
+	}
+	else
+	{
+		glGetQueryObjectiv(queryObject, GL_QUERY_RESULT,&particleCount);
+	}
 	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, updateParticleTFO[currentParticleTFO]);
+	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, queryObject);
 	glUseProgram(updateParticleProgram);
 	glBeginTransformFeedback(GL_POINTS);
 	//new emitted particle update
+	//注释掉下面这段代码，粒子不会动，why？
 	if (bEmitNewParticle)
 	{
 		bEmitNewParticle = false;
@@ -130,13 +144,27 @@ void UpdateParticle()
 		glDrawTransformFeedback(GL_POINTS, tfoNewParticle);
 	}
 	//update old particle : write old particle to some buffer via transform feedback technique
+	if (particleCount>0)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, updateParticleTFOBuffer[currentOldParticleBufferIndex]);
+		glEnableVertexAttribArray(updateParticleProgramPosLocation);
+		glVertexAttribPointer(updateParticleProgramPosLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glDrawTransformFeedback(GL_POINTS, updateParticleTFO[currentOldParticleBufferIndex]);
+	}
 	glEndTransformFeedback();
+	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
 	glUseProgram(0);
 	glDisable(GL_RASTERIZER_DISCARD);
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
 	currentParticleTFOForDraw = currentParticleTFO;
 
-	//currentParticleTFO = (currentParticleTFO + 1) % 2;
+	//glBindBuffer(GL_ARRAY_BUFFER, updateParticleTFOBuffer[currentParticleTFOForDraw]);
+	//FloatBundle*vertexes = (FloatBundle*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+	//printf("%f,%f,%f,%f\n",vertexes[0].v[0], vertexes[0].v[1], vertexes[0].v[3], vertexes[0].v[3]);
+	//glUnmapBuffer(GL_ARRAY_BUFFER);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	currentParticleTFO = (currentParticleTFO + 1) % 2;
 }
 
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
@@ -262,6 +290,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	};
 	glEnable(GL_POINT_SPRITE);
 	glEnable(GL_PROGRAM_POINT_SIZE);
+	glGenQueries(1, &queryObject);
 	MSG msg;
 	while (true)
 	{
