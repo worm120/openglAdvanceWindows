@@ -81,6 +81,14 @@ GLuint tfoNewParticle, tfoNewParticleBuffer;
 GLuint translateMProgram;
 GLint translateMPosLocation, translateMMLocation;
 
+GLuint updateParticleProgram=0;
+GLint updateParticleProgramPosLocation;
+bool bEmitNewParticle=false;
+GLuint updateParticleTFO[2];
+GLuint updateParticleTFOBuffer[2];
+int currentParticleTFO = 0;
+int currentParticleTFOForDraw = 0;
+
 glm::mat4 model;
 glm::mat4 projection;
 glm::mat4 normalMatrix;
@@ -100,6 +108,30 @@ void EmitParticle()
 	glEndTransformFeedback();
 	glUseProgram(0);
 	glDisable(GL_RASTERIZER_DISCARD);
+}
+
+void UpdateParticle()
+{
+	printf("current particle buffer tfo %d %d\n",currentParticleTFO, currentParticleTFOForDraw);
+
+	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, updateParticleTFO[currentParticleTFO]);
+	glUseProgram(updateParticleProgram);
+	glBeginTransformFeedback(GL_POINTS);
+	//new emitted particle update
+	if (bEmitNewParticle)
+	{
+		//update particle : write new particle to some buffer via transform feedback technique
+	}
+	//update old particle : write old particle to some buffer via transform feedback technique
+
+	glEndTransformFeedback();
+	glUseProgram(0);
+	glDisable(GL_RASTERIZER_DISCARD);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+	currentParticleTFOForDraw = currentParticleTFO;
+
+	currentParticleTFO = (currentParticleTFO + 1) % 2;
 }
 
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
@@ -228,21 +260,23 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			DispatchMessage(&msg);
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glUseProgram(program);
+		//update particle
+		UpdateParticle();
+		//draw particle
+		/*glUseProgram(program);
 		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
 		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, particleAlphaTexture);
 		glUniform1i(textureLocation,0);
-		glBindBuffer(GL_ARRAY_BUFFER, tfoNewParticleBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, updateParticleTFOBuffer[currentParticleTFOForDraw]);
 		glEnableVertexAttribArray(posLocation);
 		glVertexAttribPointer(posLocation, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
 		glDrawArrays(GL_POINTS, 0,1);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		glUseProgram(0);
+		glUseProgram(0);*/
 		glFlush();
 		SwapBuffers(dc);
 	}
