@@ -4,6 +4,12 @@
 #pragma comment(lib,"winmm.lib")
 LRESULT CALLBACK LearnWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message){
+	case WM_SIZE:{
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		OnViewportChanged(rect.right - rect.left, rect.bottom - rect.top);
+	}
+		break;
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		break;
