@@ -24,12 +24,18 @@
     <ClCompile Include="scene.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="XVulkan.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BVulkan.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="scene.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XVulkan.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
