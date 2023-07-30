@@ -135,7 +135,12 @@ void UpdateParticle()
 	else
 	{
 		glGetQueryObjectiv(queryObject, GL_QUERY_RESULT,&particleCount);
+		if (particleCount==0)
+		{
+			EmitParticle();
+		}
 	}
+
 	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, updateParticleTFO[currentParticleTFO]);
 	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, queryObject);
@@ -246,13 +251,13 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	height = rect.bottom - rect.top;
 
 
-	model = glm::translate(0.0f, 0.0f, -2.0f);
+	model = glm::translate(0.0f, 0.0f, -4.0f);
 	projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	normalMatrix = glm::inverseTranspose(model);
 
 	FloatBundle vertexes[1];
 	vertexes[0].v[0] = 0.0f;
-	vertexes[0].v[1] = 0.0f;
+	vertexes[0].v[1] = -1.0f;
 	vertexes[0].v[2] = 0.0f;
 	vertexes[0].v[3] = 1.0f;
 
@@ -287,7 +292,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GLuint particleAlphaTexture = CreateTextureAlpha(256, 256);
 
 	//update particle shader
-	updateParticleProgram = CreateTFOProgram("res/shader/tfo_update_particle.vs", attribs, 2, GL_INTERLEAVED_ATTRIBS);
+	updateParticleProgram = CreateTFOProgram("res/shader/tfo_update_particle.vs", attribs, 2, GL_INTERLEAVED_ATTRIBS,"res/shader/tfo_update_particle.gs");
 	updateParticleProgramPosLocation = glGetAttribLocation(updateParticleProgram,"pos");
 	updateParticleProgramMessLocation = glGetAttribLocation(updateParticleProgram, "mess");
 
