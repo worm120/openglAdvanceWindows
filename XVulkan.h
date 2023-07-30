@@ -21,3 +21,7 @@ void xBufferSubData(VkBuffer buffer, VkBufferUsageFlags usage, const void * data
 #define xBufferSubVertexData(buffer,data,size) \
 	xBufferSubData(buffer,VK_BUFFER_USAGE_TRANSFER_SRC_BIT|VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,data,size);
 uint32_t xGetMemoryType(uint32_t type_filters, VkMemoryPropertyFlags properties);
+void xBeginOneTimeCommandBuffer(VkCommandBuffer*commandbuffer);
+void xEndOneTimeCommandBuffer(VkCommandBuffer commandbuffer);
+void xGenCommandBuffer(VkCommandBuffer*commandbuffer, int count, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+void xWaitForCommandFinish(VkCommandBuffer commandbuffer);
