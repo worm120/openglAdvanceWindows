@@ -101,8 +101,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	rect.top = 0;
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
-	HWND hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 100, 
-		rect.right-rect.left, rect.bottom-rect.top, NULL, NULL, hInstance, NULL);
+	HWND hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 100, rect.right-rect.left, rect.bottom-rect.top, NULL, NULL, hInstance, NULL);
 	HDC dc = GetDC(hwnd);
 	PIXELFORMATDESCRIPTOR pfd;
 	memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
@@ -131,8 +130,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		ReleaseDC(hwnd, dc);
 		dc = nullptr;
 		DestroyWindow(hwnd);
-		hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 
-			100, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, hInstance, NULL);
+		hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 100, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, hInstance, NULL);
 		//create msaa rc
 		dc = GetDC(hwnd);
 		rc = CreateNBRC(dc);
@@ -150,7 +148,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	normalMatrix = glm::inverseTranspose(model);
 
-	FloatBundle vertexes[3];
+	FloatBundle vertexes[4];
 	vertexes[0].v[0] = 0.0f;
 	vertexes[0].v[1] = 0.0f;
 	vertexes[0].v[2] = 0.0f;
@@ -166,10 +164,14 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	vertexes[2].v[2] = 0.0f;
 	vertexes[2].v[3] = 1.0f;
 
-	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 3, GL_STATIC_DRAW, vertexes);
+	vertexes[3].v[0] = 0.0f;
+	vertexes[3].v[1] = 1.0f;
+	vertexes[3].v[2] = 0.0f;
+	vertexes[3].v[3] = 1.0f;
 
-	GLuint program = CreateGPUProgram("res/shader/tessllation.vs", "res/shader/tessllation.fs", nullptr, 
-		nullptr, "res/shader/tessllation.tese");
+	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 4, GL_STATIC_DRAW, vertexes);
+
+	GLuint program = CreateGPUProgram("res/shader/tessllation.vs", "res/shader/tessllation.fs", nullptr, nullptr, "res/shader/tessllation.tese");
 	GLint MLocation,VLocation, PLocation,posLocation;
 
 	GL_CALL(posLocation = glGetAttribLocation(program, "pos"));
@@ -211,8 +213,8 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		glPatchParameteri(GL_PATCH_VERTICES, 3);
-		glDrawArrays(GL_PATCHES, 0, 3);
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawArrays(GL_PATCHES, 0, 4);
 
 		glUseProgram(0);
 		glFlush();
