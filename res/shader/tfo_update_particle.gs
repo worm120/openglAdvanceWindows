@@ -9,7 +9,7 @@ out vec4 o_mess;
 void main()
 {
 	float currentAge=vs_Mess[0].x;
-	if(currentAge<5.0)
+	if(currentAge<20.0)
 	{
 		o_mess=vs_Mess[0];
 		gl_Position = gl_in[0].gl_Position;

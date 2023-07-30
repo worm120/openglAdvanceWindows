@@ -99,6 +99,8 @@ int currentParticleTFOForDraw = 0;
 
 GLuint queryObject;
 GLint particleCount=-1;
+int frame = 0;
+float totalTime = 0.0f;
 
 glm::mat4 model;
 glm::mat4 projection;
@@ -126,7 +128,6 @@ void EmitParticle()
 
 void UpdateParticle()
 {
-	//printf("current particle buffer tfo %d %d\n",currentParticleTFO, currentParticleTFOForDraw);
 	int currentOldParticleBufferIndex = currentParticleTFOForDraw;
 	if (particleCount==-1)
 	{
@@ -135,12 +136,23 @@ void UpdateParticle()
 	else
 	{
 		glGetQueryObjectiv(queryObject, GL_QUERY_RESULT,&particleCount);
-		if (particleCount==0)
-		{
-			EmitParticle();
-		}
 	}
 
+	if (frame==5)
+	{
+		frame = 0;
+		EmitParticle();
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, emitter);
+	FloatBundle*vertexes = (FloatBundle*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+	vertexes[0].v[0] = sinf(totalTime)*2.0f;
+	totalTime += 0.016f;
+	//printf("%f,%f,%f,%f\n", vertexes[0].v[0], vertexes[0].v[1], vertexes[0].v[3], vertexes[0].v[3]);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	frame++;
+	//printf("current particle buffer tfo %d %d %d\n", currentParticleTFO, currentParticleTFOForDraw, particleCount);
+	
 	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, updateParticleTFO[currentParticleTFO]);
 	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, queryObject);
@@ -203,8 +215,8 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	ATOM atom = RegisterClassEx(&wndClass);
 	RECT rect;
 	rect.left = 0;
-	rect.right = 800;
-	rect.bottom = 600;
+	rect.right = 1280;
+	rect.bottom = 720;
 	rect.top = 0;
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
@@ -277,7 +289,6 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	translateMMessLocation = glGetAttribLocation(translateMProgram, "mess");
 	GL_CALL(translateMMLocation = glGetUniformLocation(translateMProgram, "M"));
 
-	EmitParticle();
 	//above is success
 	//world world -> screen coordinate : execute per frame
 	GLuint program = CreateGPUProgram("res/shader/tfo_translateScreen.vs", "res/shader/tfo_translateScreen.fs","res/shader/tfo_translateScreen.gs");
@@ -302,7 +313,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		updateParticleTFO[i] = CreateTransformFeedbackObject(updateParticleTFOBuffer[i]);
 	}
 
-	GL_CALL(glClearColor(0.1f, 0.4f, 0.7f,1.0f));
+	GL_CALL(glClearColor(0.0f, 0.0f, 0.0f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
 	glViewport(0, 0, width,height);
@@ -343,9 +354,8 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		glVertexAttribPointer(posLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), 0);
 		glEnableVertexAttribArray(messLocation);
 		glVertexAttribPointer(messLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), (void*)(sizeof(float) * 4));
-		glDrawArrays(GL_POINTS, 0,1);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+		glDrawTransformFeedback(GL_POINTS,updateParticleTFO[currentParticleTFOForDraw]);
 		glUseProgram(0);
 		glFlush();
 		SwapBuffers(dc);
