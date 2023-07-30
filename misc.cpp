@@ -207,7 +207,7 @@ GLuint CompileShader(GLenum shaderType, const char*shaderPath)
 }
 
 
-GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const char*gsPath)
+GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const char*gsPath, const char*tcsPath, const char*tesPath)
 {
 	GLuint vsShader = CompileShader(GL_VERTEX_SHADER, vsShaderPath);
 	GLuint fsShader = CompileShader(GL_FRAGMENT_SHADER,fsShaderPath);
@@ -215,10 +215,22 @@ GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const c
 	glAttachShader(program, vsShader);
 	glAttachShader(program, fsShader);
 	GLuint gsShader = 0;
+	GLuint tcsShader = 0;
+	GLuint tesShader = 0;
 	if (gsPath!=nullptr)
 	{
 		gsShader = CompileShader(GL_GEOMETRY_SHADER, gsPath);
 		glAttachShader(program, gsShader);
+	}
+	if (tcsPath != nullptr)
+	{
+		tcsShader = CompileShader(GL_TESS_CONTROL_SHADER, tcsPath);
+		glAttachShader(program, tcsShader);
+	}
+	if (tesPath != nullptr)
+	{
+		tesShader = CompileShader(GL_TESS_EVALUATION_SHADER, tesPath);
+		glAttachShader(program, tesShader);
 	}
 	glLinkProgram(program);
 	glDetachShader(program, vsShader);
@@ -227,9 +239,18 @@ GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath,const c
 	glDeleteShader(fsShader);
 	if (gsPath!=nullptr)
 	{
-
 		glDetachShader(program, gsShader);
 		glDeleteShader(gsShader);
+	}
+	if (tesPath != nullptr)
+	{
+		glDetachShader(program, tesShader);
+		glDeleteShader(tesShader);
+	}
+	if (tcsPath != nullptr)
+	{
+		glDetachShader(program, tcsShader);
+		glDeleteShader(tcsShader);
 	}
 	GLint linkResult = GL_TRUE;
 	glGetProgramiv(program,GL_LINK_STATUS,&linkResult);

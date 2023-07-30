@@ -9,7 +9,7 @@ GLuint CreateFramebufferObject(GLuint&colorBuffer,GLuint&depthBuffer, int width,
 
 char *LoadFileContent(const char*path);
 GLuint CompileShader(GLenum shaderType,const char*shaderPath);
-GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath, const char*gsPath = nullptr);
+GLuint CreateGPUProgram(const char*vsShaderPath, const char*fsShaderPath, const char*gsPath = nullptr,const char*tcsPath=nullptr,const char*tesPath=nullptr);
 GLuint CreateTFOProgram(const char*vsShaderPath, const char* const*attris,int nCount,GLenum memoryFormat, const char*gsPath = nullptr);
 GLuint CreateComputeProgram(const char*computeShaderPath);
 unsigned char*DecodeBMPData(unsigned char*imgData, int&width, int&height);

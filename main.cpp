@@ -25,16 +25,6 @@ struct FloatBundle
 	};
 };
 
-float frandom()//0~1
-{
-	return rand() / (float)RAND_MAX;
-}
-
-float sfrandom()//-1~1
-{
-	return frandom()*2.0f - 1.0f;
-}
-
 HGLRC CreateNBRC(HDC dc)
 {
 	HGLRC rc;
@@ -84,118 +74,9 @@ LRESULT CALLBACK GLWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd,msg,wParam,lParam);
 }
 
-GLuint emitter;//emitter pos
-GLuint tfoNewParticle, tfoNewParticleBuffer;
-GLuint translateMProgram;
-GLint translateMPosLocation, translateMMessLocation, translateMMLocation;
-
-GLuint updateParticleProgram=0;
-GLint updateParticleProgramPosLocation, updateParticleProgramMessLocation;
-bool bEmitNewParticle=false;
-GLuint updateParticleTFO[2];
-GLuint updateParticleTFOBuffer[2];
-int currentParticleTFO = 0;
-int currentParticleTFOForDraw = 0;
-
-GLuint queryObject;
-GLint particleCount=-1;
-int frame = 0;
-float totalTime = 0.0f;
-
 glm::mat4 model;
 glm::mat4 projection;
 glm::mat4 normalMatrix;
-void EmitParticle()
-{
-	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
-	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tfoNewParticle);
-	glUseProgram(translateMProgram);
-	glUniformMatrix4fv(translateMMLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-	glBeginTransformFeedback(GL_POINTS);
-	glBindBuffer(GL_ARRAY_BUFFER, emitter);
-	glEnableVertexAttribArray(translateMPosLocation);
-	glVertexAttribPointer(translateMPosLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), 0);
-	glEnableVertexAttribArray(translateMMessLocation);
-	glVertexAttribPointer(translateMMessLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), (void*)(sizeof(float)*4));
-	glDrawArrays(GL_POINTS, 0, 1);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glEndTransformFeedback();
-	glUseProgram(0);
-	glDisable(GL_RASTERIZER_DISCARD);
-	bEmitNewParticle = true;
-}
-
-void UpdateParticle()
-{
-	int currentOldParticleBufferIndex = currentParticleTFOForDraw;
-	if (particleCount==-1)
-	{
-		particleCount++;
-	}
-	else
-	{
-		glGetQueryObjectiv(queryObject, GL_QUERY_RESULT,&particleCount);
-	}
-
-	if (frame==5)
-	{
-		frame = 0;
-		EmitParticle();
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, emitter);
-	FloatBundle*vertexes = (FloatBundle*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
-	vertexes[0].v[0] = sinf(totalTime)*2.0f;
-	totalTime += 0.016f;
-	//printf("%f,%f,%f,%f\n", vertexes[0].v[0], vertexes[0].v[1], vertexes[0].v[3], vertexes[0].v[3]);
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	frame++;
-	//printf("current particle buffer tfo %d %d %d\n", currentParticleTFO, currentParticleTFOForDraw, particleCount);
-	
-	GL_CALL(glEnable(GL_RASTERIZER_DISCARD));
-	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, updateParticleTFO[currentParticleTFO]);
-	glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, queryObject);
-	glUseProgram(updateParticleProgram);
-	glBeginTransformFeedback(GL_POINTS);
-	//new emitted particle update
-	if (bEmitNewParticle)
-	{
-		bEmitNewParticle = false;
-		//update particle : write new particle to some buffer via transform feedback technique
-		glBindBuffer(GL_ARRAY_BUFFER, tfoNewParticleBuffer);
-		glEnableVertexAttribArray(updateParticleProgramPosLocation);
-		glVertexAttribPointer(updateParticleProgramPosLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), 0);
-		glEnableVertexAttribArray(updateParticleProgramMessLocation);
-		glVertexAttribPointer(updateParticleProgramMessLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), (void*)(sizeof(float) * 4));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDrawTransformFeedback(GL_POINTS, tfoNewParticle);
-	}
-	//update old particle : write old particle to some buffer via transform feedback technique
-	if (particleCount>0)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, updateParticleTFOBuffer[currentOldParticleBufferIndex]);
-		glEnableVertexAttribArray(updateParticleProgramPosLocation);
-		glVertexAttribPointer(updateParticleProgramPosLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), 0);
-		glEnableVertexAttribArray(updateParticleProgramMessLocation);
-		glVertexAttribPointer(updateParticleProgramMessLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), (void*)(sizeof(float) * 4));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDrawTransformFeedback(GL_POINTS, updateParticleTFO[currentOldParticleBufferIndex]);
-	}
-	glEndTransformFeedback();
-	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-	glUseProgram(0);
-	glDisable(GL_RASTERIZER_DISCARD);
-	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
-	currentParticleTFOForDraw = currentParticleTFO;
-
-	//glBindBuffer(GL_ARRAY_BUFFER, updateParticleTFOBuffer[currentParticleTFOForDraw]);
-	//FloatBundle*vertexes = (FloatBundle*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-	//printf("%f,%f,%f,%f\n",vertexes[0].v[0], vertexes[0].v[1], vertexes[0].v[3], vertexes[0].v[3]);
-	//glUnmapBuffer(GL_ARRAY_BUFFER);
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	currentParticleTFO = (currentParticleTFO + 1) % 2;
-}
 
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
@@ -220,7 +101,8 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	rect.top = 0;
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
 
-	HWND hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 100, rect.right-rect.left, rect.bottom-rect.top, NULL, NULL, hInstance, NULL);
+	HWND hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 100, 
+		rect.right-rect.left, rect.bottom-rect.top, NULL, NULL, hInstance, NULL);
 	HDC dc = GetDC(hwnd);
 	PIXELFORMATDESCRIPTOR pfd;
 	memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
@@ -249,7 +131,8 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		ReleaseDC(hwnd, dc);
 		dc = nullptr;
 		DestroyWindow(hwnd);
-		hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 100, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, hInstance, NULL);
+		hwnd = CreateWindowEx(NULL, L"OpenGL", L"RenderWindow", WS_OVERLAPPEDWINDOW, 100, 
+			100, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, hInstance, NULL);
 		//create msaa rc
 		dc = GetDC(hwnd);
 		rc = CreateNBRC(dc);
@@ -267,65 +150,43 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	normalMatrix = glm::inverseTranspose(model);
 
-	FloatBundle vertexes[1];
+	FloatBundle vertexes[3];
 	vertexes[0].v[0] = 0.0f;
-	vertexes[0].v[1] = -1.0f;
+	vertexes[0].v[1] = 0.0f;
 	vertexes[0].v[2] = 0.0f;
 	vertexes[0].v[3] = 1.0f;
 
-	vertexes[0].mess[0] = 0.0f;//age
-	vertexes[0].mess[1] = 0.0f;
-	vertexes[0].mess[2] = 0.0f;
-	vertexes[0].mess[3] = 0.0f;
+	vertexes[1].v[0] = 1.0f;
+	vertexes[1].v[1] = 0.0f;
+	vertexes[1].v[2] = 0.0f;
+	vertexes[1].v[3] = 1.0f;
 
-	emitter = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 1, GL_STATIC_DRAW, &vertexes);
-	tfoNewParticleBuffer = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 1024, GL_STATIC_DRAW, nullptr);
-	tfoNewParticle = CreateTransformFeedbackObject(tfoNewParticleBuffer);
+	vertexes[2].v[0] = 1.0f;
+	vertexes[2].v[1] = 1.0f;
+	vertexes[2].v[2] = 0.0f;
+	vertexes[2].v[3] = 1.0f;
 
-	//local coordinate -> world coordinate : execute once
-	const char *attribs[] = {"gl_Position","o_mess"};
-	translateMProgram = CreateTFOProgram("res/shader/tfo_translateM.vs", attribs, 2, GL_INTERLEAVED_ATTRIBS);
-	translateMPosLocation = glGetAttribLocation(translateMProgram, "pos");
-	translateMMessLocation = glGetAttribLocation(translateMProgram, "mess");
-	GL_CALL(translateMMLocation = glGetUniformLocation(translateMProgram, "M"));
+	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 3, GL_STATIC_DRAW, vertexes);
 
-	//above is success
-	//world world -> screen coordinate : execute per frame
-	GLuint program = CreateGPUProgram("res/shader/tfo_translateScreen.vs", "res/shader/tfo_translateScreen.fs","res/shader/tfo_translateScreen.gs");
-	GLint VLocation, PLocation,posLocation,messLocation,textureLocation;
+	GLuint program = CreateGPUProgram("res/shader/tessllation.vs", "res/shader/tessllation.fs", nullptr, 
+		nullptr, "res/shader/tessllation.tese");
+	GLint MLocation,VLocation, PLocation,posLocation;
 
 	GL_CALL(posLocation = glGetAttribLocation(program, "pos"));
-	messLocation = glGetAttribLocation(program, "mess");
+	MLocation = glGetUniformLocation(program, "M");
 	VLocation = glGetUniformLocation(program, "V");
 	PLocation = glGetUniformLocation(program, "P");
-	textureLocation = glGetUniformLocation(program, "U_MainTexture");
-
-	GLuint particleAlphaTexture = CreateTextureAlpha(256, 256);
-
-	//update particle shader
-	updateParticleProgram = CreateTFOProgram("res/shader/tfo_update_particle.vs", attribs, 2, GL_INTERLEAVED_ATTRIBS,"res/shader/tfo_update_particle.gs");
-	updateParticleProgramPosLocation = glGetAttribLocation(updateParticleProgram,"pos");
-	updateParticleProgramMessLocation = glGetAttribLocation(updateParticleProgram, "mess");
-
-	for (int i=0;i<2;++i)
-	{
-		updateParticleTFOBuffer[i] = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 10240, GL_STATIC_DRAW, nullptr);
-		updateParticleTFO[i] = CreateTransformFeedbackObject(updateParticleTFOBuffer[i]);
-	}
 
 	GL_CALL(glClearColor(0.0f, 0.0f, 0.0f,1.0f));
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
 	glViewport(0, 0, width,height);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	float identity[] = {
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,
 		0,0,0,1
 	};
-	glGenQueries(1, &queryObject);
 	MSG msg;
 	while (true)
 	{
@@ -339,23 +200,20 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			DispatchMessage(&msg);
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//update particle
-		UpdateParticle();
-		//draw particle
 		glUseProgram(program);
+		glUniformMatrix4fv(MLocation, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(VLocation, 1, GL_FALSE, identity);
 		glUniformMatrix4fv(PLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, particleAlphaTexture);
-		glUniform1i(textureLocation,0);
-		glBindBuffer(GL_ARRAY_BUFFER, updateParticleTFOBuffer[currentParticleTFOForDraw]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glEnableVertexAttribArray(posLocation);
 		glVertexAttribPointer(posLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), 0);
-		glEnableVertexAttribArray(messLocation);
-		glVertexAttribPointer(messLocation, 4, GL_FLOAT, GL_FALSE, sizeof(FloatBundle), (void*)(sizeof(float) * 4));
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDrawTransformFeedback(GL_POINTS,updateParticleTFO[currentParticleTFOForDraw]);
+
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glPatchParameteri(GL_PATCH_VERTICES, 3);
+		glDrawArrays(GL_PATCHES, 0, 3);
+
 		glUseProgram(0);
 		glFlush();
 		SwapBuffers(dc);
