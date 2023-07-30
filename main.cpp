@@ -171,7 +171,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	GLuint vbo = CreateBufferObject(GL_ARRAY_BUFFER, sizeof(FloatBundle) * 4, GL_STATIC_DRAW, vertexes);
 
-	GLuint program = CreateGPUProgram("res/shader/tessllation.vs", "res/shader/tessllation.fs", nullptr, nullptr, "res/shader/tessllation.tese");
+	GLuint program = CreateGPUProgram("res/shader/tessllation.vs", "res/shader/tessllation.fs", nullptr, "res/shader/tessllation.tesc", "res/shader/tessllation.tese");
 	GLint MLocation,VLocation, PLocation,posLocation;
 
 	GL_CALL(posLocation = glGetAttribLocation(program, "pos"));
@@ -189,6 +189,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		0,0,1,0,
 		0,0,0,1
 	};
+	glPolygonMode(GL_FRONT, GL_LINE);
 	MSG msg;
 	while (true)
 	{
