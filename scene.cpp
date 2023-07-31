@@ -17,10 +17,10 @@ void Init() {
 	GLuint vs, fs;
 	int file_len = 0;
 	unsigned char *file_content = LoadFileContent("Res/test.vsb", file_len);
-	aCreateShader(vs, file_content, file_len);
+	xCreateShader(vs, file_content, file_len);
 	delete[]file_content;
 	file_content = LoadFileContent("Res/test.fsb", file_len);
-	aCreateShader(fs, file_content, file_len);
+	xCreateShader(fs, file_content, file_len);
 	delete[]file_content;
 	aAttachVertexShader(program, vs);
 	aAttachFragmentShader(program, fs);

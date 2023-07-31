@@ -64,3 +64,4 @@ void xBeginOneTimeCommandBuffer(VkCommandBuffer*commandbuffer);
 void xEndOneTimeCommandBuffer(VkCommandBuffer commandbuffer);
 void xGenCommandBuffer(VkCommandBuffer*commandbuffer, int count, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 void xWaitForCommandFinish(VkCommandBuffer commandbuffer);
+void xCreateShader(VkShaderModule&shader, unsigned char *code, int code_len);
