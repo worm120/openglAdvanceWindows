@@ -1,8 +1,8 @@
 #include "BVulkan.h"
 #include "scene.h"
 #include "XVulkan.h"
-AVulkanHandle program;
-XBufferObject *vbo;
+XProgram * program=nullptr;
+XBufferObject *vbo=nullptr;
 void Init() {
 	Vertex vertexes[3];
 	vertexes[0].SetPosition(-0.5f, 0.5f, 0.0f);
@@ -13,7 +13,7 @@ void Init() {
 	vertexes[2].SetTexcoord(0.0f, 1.0f, 1.0f, 1.0f);
 	vbo = new XBufferObject;
 	xglBufferData(vbo, sizeof(Vertex) * 3, vertexes);
-	program = aCreateProgram();
+	program = new XProgram;
 	GLuint vs, fs;
 	int file_len = 0;
 	unsigned char *file_content = LoadFileContent("Res/test.vsb", file_len);
@@ -40,7 +40,7 @@ void OnViewportChanged(int width, int height) {
 }
 void OnQuit() {
 	if (program!=nullptr){
-		aDeleteProgram(program);
+		delete program;
 	}
 	if (vbo!=nullptr){
 		glDeleteBufferObject(vbo);
