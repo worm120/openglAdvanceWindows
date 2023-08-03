@@ -67,3 +67,4 @@ void xWaitForCommandFinish(VkCommandBuffer commandbuffer);
 void xCreateShader(VkShaderModule&shader, unsigned char *code, int code_len);
 void xAttachVertexShader(XProgram*program, VkShaderModule shader);
 void xAttachFragmentShader(XProgram*program, VkShaderModule shader);
+void xLinkProgram(XProgram*program);

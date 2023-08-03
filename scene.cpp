@@ -24,7 +24,7 @@ void Init() {
 	delete[]file_content;
 	xAttachVertexShader(program, vs);
 	xAttachFragmentShader(program, fs);
-	aLinkProgram(program);
+	xLinkProgram(program);
 }
 void Draw(float deltaTime) {
 	aClearColor(0.1f, 0.4f, 0.6f, 1.0f);

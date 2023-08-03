@@ -30,6 +30,7 @@ XProgram::XProgram() {
 	mFragmentShader = 0;
 	mDescriptorPool = 0;
 	mDescriptorSetLayout = 0;
+	mDescriptorSet = 0;
 	memset(mShaderStage, 0, sizeof(VkPipelineShaderStageCreateInfo)*2);
 }
 XProgram::~XProgram() {
@@ -166,4 +167,16 @@ void xAttachFragmentShader(XProgram*program, VkShaderModule shader) {
 	program->mShaderStage[1].module = shader;
 	program->mShaderStage[1].pName = "main";
 	program->mFragmentShader = shader;
+}
+void xLinkProgram(XProgram*program) {
+	InitDescriptorSetLayout(program);
+	InitDescriptorPool(program);
+	InitDescriptorSet(program);
+	aSetDescriptorSetLayout(&program->mFixedPipeline, &program->mDescriptorSetLayout);
+	aSetShaderStage(&program->mFixedPipeline, program->mShaderStage, 2);
+	aSetColorAttachmentCount(&program->mFixedPipeline, 1);
+	aSetRenderPass(&program->mFixedPipeline, GetGlobalRenderPass());
+	program->mFixedPipeline.mViewport = {0.0f,0.0f,float(GetViewportWidth()),float(GetViewportHeight())};
+	program->mFixedPipeline.mScissor = { {0,0} ,{uint32_t(GetViewportWidth()),uint32_t(GetViewportHeight())} };
+	aCreateGraphicPipeline(&program->mFixedPipeline);
 }
