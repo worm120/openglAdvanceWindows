@@ -22,8 +22,8 @@ void Init() {
 	file_content = LoadFileContent("Res/test.fsb", file_len);
 	xCreateShader(fs, file_content, file_len);
 	delete[]file_content;
-	aAttachVertexShader(program, vs);
-	aAttachFragmentShader(program, fs);
+	xAttachVertexShader(program, vs);
+	xAttachFragmentShader(program, fs);
 	aLinkProgram(program);
 }
 void Draw(float deltaTime) {
