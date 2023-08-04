@@ -69,3 +69,6 @@ void xAttachVertexShader(XProgram*program, VkShaderModule shader);
 void xAttachFragmentShader(XProgram*program, VkShaderModule shader);
 void xLinkProgram(XProgram*program);
 void xInitDescriptorSetLayout(XProgram*program);
+void xInitDescriptorPool(XProgram*program);
+void xInitDescriptorSet(XProgram*program);
+void xSubmitUniformBuffer(XUniformBuffer*uniformbuffer);
