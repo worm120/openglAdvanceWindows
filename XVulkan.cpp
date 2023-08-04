@@ -169,6 +169,25 @@ void xAttachFragmentShader(XProgram*program, VkShaderModule shader) {
 	program->mFragmentShader = shader;
 }
 void xLinkProgram(XProgram*program) {
+	program->mVertexShaderVectorUniformBuffer.mType = kXUniformBufferTypeVector;
+	program->mVertexShaderVectorUniformBuffer.mVector4s.resize(8);
+	program->mVertexShaderVectorUniformBuffer.mVector4s[0].mData[0] = 1.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[0].mData[1] = 0.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[0].mData[2] = 0.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[0].mData[3] = 1.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[1].mData[0] = 0.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[1].mData[1] = 0.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[1].mData[2] = 1.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[1].mData[3] = 1.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[0] = 0.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[1] = 1.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[2] = 0.0f;
+	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[3] = 1.0f;
+	xGenBuffer(program->mVertexShaderVectorUniformBuffer.mBuffer, 
+		program->mVertexShaderVectorUniformBuffer.mMemory,
+		sizeof(XVector4f), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+	xSubmitUniformBuffer(&program->mVertexShaderVectorUniformBuffer);
 	xInitDescriptorSetLayout(program);
 	xInitDescriptorPool(program);
 	xInitDescriptorSet(program);
@@ -211,6 +230,19 @@ void xInitDescriptorSet(XProgram*program) {
 	for (int i=0;i<program->mWriteDescriptorSet.size();++i){
 		program->mWriteDescriptorSet[i].dstSet = program->mDescriptorSet;
 	}
-	vkUpdateDescriptorSets(GetVulkanDevice(), uint32_t(program->mWriteDescriptorSet.size()),
-		program->mWriteDescriptorSet.data(),0,nullptr);
+	vkUpdateDescriptorSets(GetVulkanDevice(), uint32_t(program->mWriteDescriptorSet.size()), program->mWriteDescriptorSet.data(),0,nullptr);
+}
+void xSubmitUniformBuffer(XUniformBuffer*uniformbuffer) {
+	void*dst;
+	if (uniformbuffer->mType==kXUniformBufferTypeMatrix){
+		int size = sizeof(XMatrix4x4f)*uniformbuffer->mMatrices.size();
+		vkMapMemory(GetVulkanDevice(), uniformbuffer->mMemory, 0, size, 0, &dst);
+		memcpy(dst, uniformbuffer->mMatrices.data(), size);
+	}
+	else if (uniformbuffer->mType == kXUniformBufferTypeVector) {
+		int size = sizeof(XVector4f)*uniformbuffer->mVector4s.size();
+		vkMapMemory(GetVulkanDevice(), uniformbuffer->mMemory, 0, size, 0, &dst);
+		memcpy(dst, uniformbuffer->mVector4s.data(), size);
+	}
+	vkUnmapMemory(GetVulkanDevice(), uniformbuffer->mMemory);
 }
