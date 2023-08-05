@@ -14,6 +14,13 @@ struct XBufferObject {
 };
 struct XMatrix4x4f {
 	float mData[16];
+	XMatrix4x4f() {
+		memset(mData, 0, sizeof(float) * 16);
+		mData[0] = 1.0f;
+		mData[5] = 1.0f;
+		mData[10] = 1.0f;
+		mData[15] = 1.0f;
+	}
 };
 struct XVector4f {
 	float mData[4];
