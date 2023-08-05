@@ -72,3 +72,4 @@ void xInitDescriptorSetLayout(XProgram*program);
 void xInitDescriptorPool(XProgram*program);
 void xInitDescriptorSet(XProgram*program);
 void xSubmitUniformBuffer(XUniformBuffer*uniformbuffer);
+void xConfigUniformBuffer(XVulkanHandle param, int bingding, XUniformBuffer *ubo, VkShaderStageFlags shader_stage);
