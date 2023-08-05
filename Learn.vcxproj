@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\VulkanSDK\1.1.121.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>.\Glm;C:\VulkanSDK\1.1.121.0\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\VulkanSDK\1.1.121.0\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

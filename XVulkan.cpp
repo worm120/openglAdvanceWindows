@@ -183,17 +183,16 @@ void xLinkProgram(XProgram*program) {
 	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[1] = 1.0f;
 	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[2] = 0.0f;
 	program->mVertexShaderVectorUniformBuffer.mVector4s[2].mData[3] = 1.0f;
-	xGenBuffer(program->mVertexShaderVectorUniformBuffer.mBuffer, 
-		program->mVertexShaderVectorUniformBuffer.mMemory,
-		sizeof(XVector4f)*8, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+	xGenBuffer(program->mVertexShaderVectorUniformBuffer.mBuffer, program->mVertexShaderVectorUniformBuffer.mMemory,
+		sizeof(XVector4f)*8, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 	xSubmitUniformBuffer(&program->mVertexShaderVectorUniformBuffer);
 	program->mVertexShaderMatrixUniformBuffer.mType = kXUniformBufferTypeMatrix;
 	program->mVertexShaderMatrixUniformBuffer.mMatrices.resize(8);
-	xGenBuffer(program->mVertexShaderMatrixUniformBuffer.mBuffer, 
-		program->mVertexShaderMatrixUniformBuffer.mMemory,
-		sizeof(XMatrix4x4f) * 8, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+	glm::mat4 projection = glm::perspective(45.0f, float(GetViewportWidth()) / float(GetViewportHeight()), 0.1f, 100.0f);
+	projection[1][1] *= -1.0f;
+	memcpy(program->mVertexShaderMatrixUniformBuffer.mMatrices[2].mData, glm::value_ptr(projection), sizeof(XMatrix4x4f));
+	xGenBuffer(program->mVertexShaderMatrixUniformBuffer.mBuffer, program->mVertexShaderMatrixUniformBuffer.mMemory,
+		sizeof(XMatrix4x4f) * 8, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 	xSubmitUniformBuffer(&program->mVertexShaderMatrixUniformBuffer);
 	xConfigUniformBuffer(program, 0, &program->mVertexShaderVectorUniformBuffer, VK_SHADER_STAGE_VERTEX_BIT);
 	xConfigUniformBuffer(program, 1, &program->mVertexShaderMatrixUniformBuffer, VK_SHADER_STAGE_VERTEX_BIT);
