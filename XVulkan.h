@@ -60,6 +60,24 @@ struct XProgram {
 	XProgram();
 	~XProgram();
 };
+struct XTexture {
+	VkImage mImage;
+	VkDeviceMemory mMemory;
+	VkImageView mImageView;
+	VkSampler mSampler;
+	VkImageLayout mInitLayout;
+	VkImageLayout mTargetLayout;
+	VkPipelineStageFlags mSrcStage;
+	VkPipelineStageFlags mTargetStage;
+	VkImageAspectFlags mImageAspectFlag;
+	VkFormat mFormat;
+	VkFilter mMinFilter, mMagFilter;
+	VkSamplerAddressMode mWrapU, mWrapV, mWrapW;
+	VkBool32 mbEnableAnisotropy;
+	float mMaxAnisotropy;
+	XTexture(VkImageAspectFlags image_aspect = VK_IMAGE_ASPECT_COLOR_BIT);
+	~XTexture();
+};
 void xglBufferData(XVulkanHandle vbo, int size, void *data);
 VkResult xGenBuffer(VkBuffer&buffer, VkDeviceMemory&buffermemory, VkDeviceSize size, VkBufferUsageFlags usage,
 	VkMemoryPropertyFlags properties);
@@ -82,3 +100,5 @@ void xInitDescriptorPool(XProgram*program);
 void xInitDescriptorSet(XProgram*program);
 void xSubmitUniformBuffer(XUniformBuffer*uniformbuffer);
 void xConfigUniformBuffer(XVulkanHandle param, int bingding, XUniformBuffer *ubo, VkShaderStageFlags shader_stage);
+void xGenImage(XTexture*texture, uint32_t w, uint32_t h, VkFormat f,
+	VkImageUsageFlags usage, VkSampleCountFlagBits sample_count = VK_SAMPLE_COUNT_1_BIT, int mipmap = 1);
