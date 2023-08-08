@@ -13,10 +13,84 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="源文件\SOIL2">
+      <UniqueIdentifier>{0bd0bf0e-cfff-488b-accd-0faea2255ed8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2-master\src\SOIL2\image_DXT.c">
+      <Filter>源文件\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2-master\src\SOIL2\image_helper.c">
+      <Filter>源文件\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2-master\src\SOIL2\SOIL2.c">
+      <Filter>源文件\SOIL2</Filter>
+    </ClCompile>
+    <ClCompile Include="SOIL2-master\src\SOIL2\wfETC.c">
+      <Filter>源文件\SOIL2</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Utils.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\image_DXT.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\image_helper.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\jo_jpeg.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\pkm_helper.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\pvr_helper.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\SOIL2.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stb_image.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stb_image_write.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_DDS.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_DDS_c.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_ext.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_ext_c.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pkm.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pkm_c.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pvr.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pvr_c.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SOIL2-master\src\SOIL2\wfETC.h">
+      <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

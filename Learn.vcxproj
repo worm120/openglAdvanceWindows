@@ -20,6 +20,31 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SOIL2-master\src\SOIL2\image_DXT.c" />
+    <ClCompile Include="SOIL2-master\src\SOIL2\image_helper.c" />
+    <ClCompile Include="SOIL2-master\src\SOIL2\SOIL2.c" />
+    <ClCompile Include="SOIL2-master\src\SOIL2\wfETC.c" />
+    <ClCompile Include="Utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SOIL2-master\src\SOIL2\image_DXT.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\image_helper.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\jo_jpeg.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\pkm_helper.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\pvr_helper.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\SOIL2.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_DDS.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_DDS_c.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_ext.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_ext_c.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pkm.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pkm_c.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pvr.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stbi_pvr_c.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stb_image.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\stb_image_write.h" />
+    <ClInclude Include="SOIL2-master\src\SOIL2\wfETC.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -77,7 +102,7 @@
     <LibraryPath>.\glfw\lib-vc2019;.\glew\lib\Release\x64;C:\VulkanSDK\1.1.121.0\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>.\glfw\include;.\glew\include;$(IncludePath)</IncludePath>
+    <IncludePath>.\;.\SOIL2-master\src;.\glfw\include;.\glew\include;$(IncludePath)</IncludePath>
     <LibraryPath>.\glfw\lib-vc2019;.\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -103,6 +128,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glfw3.lib;glew32.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
