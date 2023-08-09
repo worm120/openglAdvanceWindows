@@ -41,9 +41,6 @@ void setupVertices(void) {
 		-1.0f,  1.0f, -1.0f, 1.0f,  1.0f, -1.0f, 1.0f,  1.0f,  1.0f,
 		1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f, -1.0f
 	};
-	/*for (int i = 0; i < 108; i++) {
-		vertexPositions[i] *= 0.01;
-	}*/
 
 	glGenVertexArrays(1, vao);
 	glBindVertexArray(vao[0]);
@@ -73,8 +70,7 @@ void display(GLFWwindow* window, double currentTime) {
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
 
 	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-	mMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f)) *
-		glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ)) ;
+	mMat = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f)) * glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
 	mvMat = vMat * mMat;
 
 	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
@@ -94,7 +90,7 @@ int main(void) {
 	if (!glfwInit()) { exit(EXIT_FAILURE); }
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	GLFWwindow* window = glfwCreateWindow(2400, 1800, "Chapter 4 - program 1a", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(2400, 1800, "Chapter 4 - program 1b", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
 	glfwSwapInterval(1);
