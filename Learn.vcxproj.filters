@@ -36,6 +36,9 @@
     <ClCompile Include="SOIL2-master\src\SOIL2\wfETC.c">
       <Filter>源文件\SOIL2</Filter>
     </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils.h">
@@ -91,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="SOIL2-master\src\SOIL2\wfETC.h">
       <Filter>源文件\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

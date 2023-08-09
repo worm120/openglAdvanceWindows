@@ -24,6 +24,7 @@
     <ClCompile Include="SOIL2-master\src\SOIL2\image_helper.c" />
     <ClCompile Include="SOIL2-master\src\SOIL2\SOIL2.c" />
     <ClCompile Include="SOIL2-master\src\SOIL2\wfETC.c" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +45,7 @@
     <ClInclude Include="SOIL2-master\src\SOIL2\stb_image.h" />
     <ClInclude Include="SOIL2-master\src\SOIL2\stb_image_write.h" />
     <ClInclude Include="SOIL2-master\src\SOIL2\wfETC.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
